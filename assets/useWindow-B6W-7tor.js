@@ -1,0 +1,1 @@
+import{ac as u,$ as s}from"./index-B-YLQ3HL.js";function i(){const t=u();function e(o){t.add(o),s.emit("scrollToWindow",typeof o=="string"?o:o.name)}function r(o){t.remove(o)}function n(o){t.reload(o),setTimeout(()=>{t.reload(o)},0)}return{add:e,remove:r,reload:n}}export{i as u};
