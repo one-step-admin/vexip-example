@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useElementSize } from '@vueuse/core'
 import Logo from '../Logo/index.vue'
 import Menu from '../Menu/index.vue'
 import useSettingsStore from '@/store/modules/settings'
@@ -11,48 +12,79 @@ defineOptions({
 const settingsStore = useSettingsStore()
 const menuStore = useMenuStore()
 
-const sidebarScrollTop = ref(0)
-
-function onSidebarScroll(e: Event) {
-  sidebarScrollTop.value = (e.target as HTMLElement).scrollTop
+const subSidebarRef = ref()
+const showShadowTop = ref(false)
+const showShadowBottom = ref(false)
+function onSidebarScroll() {
+  const scrollTop = subSidebarRef.value.scrollTop
+  showShadowTop.value = scrollTop > 0
+  const clientHeight = subSidebarRef.value.clientHeight
+  const scrollHeight = subSidebarRef.value.scrollHeight
+  showShadowBottom.value = Math.ceil(scrollTop + clientHeight) < scrollHeight
 }
+
+const menuRef = ref()
+
+onMounted(() => {
+  onSidebarScroll()
+  const { height } = useElementSize(menuRef)
+  watch(() => height.value, () => {
+    if (height.value > 0) {
+      onSidebarScroll()
+    }
+  }, {
+    immediate: true,
+  })
+})
 </script>
 
 <template>
   <div
-    v-if="['side', 'head', 'single'].includes(settingsStore.settings.menu.menuMode)" class="sub-sidebar-container" :class="{
+    v-if="['side', 'head', 'single'].includes(settingsStore.settings.menu.mode)" class="sub-sidebar-container" :class="{
       'is-collapse': settingsStore.settings.menu.subMenuCollapse,
     }"
   >
     <Logo
-      :show-logo="settingsStore.settings.menu.menuMode === 'single'" class="sidebar-logo" :class="{
-        'sidebar-logo-bg': settingsStore.settings.menu.menuMode === 'single',
+      :show-logo="settingsStore.settings.menu.mode === 'single'" class="sidebar-logo" :class="{
+        'sidebar-logo-bg': settingsStore.settings.menu.mode === 'single',
       }"
     />
     <div
-      class="sub-sidebar flex-1 transition-shadow-300" :class="{
-        shadow: sidebarScrollTop,
+      ref="subSidebarRef" class="sub-sidebar flex-1 transition-shadow-300 scrollbar-none" :class="{
+        'shadow-top': showShadowTop,
+        'shadow-bottom': showShadowBottom,
       }" @scroll="onSidebarScroll"
     >
-      <TransitionGroup name="sub-sidebar">
-        <template v-for="(mainItem, mainIndex) in menuStore.allMenus" :key="mainIndex">
-          <div v-show="mainIndex === menuStore.actived">
-            <Menu :menu="mainItem.children" value="" :accordion="settingsStore.settings.menu.subMenuUniqueOpened" :collapse="settingsStore.settings.menu.subMenuCollapse" class="menu" />
-          </div>
-        </template>
-      </TransitionGroup>
+      <div ref="menuRef">
+        <TransitionGroup name="sub-sidebar">
+          <template v-for="(mainItem, mainIndex) in menuStore.allMenus" :key="mainIndex">
+            <div v-show="mainIndex === menuStore.actived">
+              <Menu
+                :menu="mainItem.children" value="" :accordion="settingsStore.settings.menu.subMenuUniqueOpened" :collapse="settingsStore.settings.menu.subMenuCollapse" class="menu" :class="{
+                  '-mt-2': !['head', 'single'].includes(settingsStore.settings.menu.mode),
+                }"
+              />
+            </div>
+          </template>
+        </TransitionGroup>
+      </div>
+    </div>
+    <div class="relative flex items-center px-4 py-3" :class="[settingsStore.settings.menu.subMenuCollapse ? 'justify-center' : 'justify-end']">
+      <span v-show="settingsStore.settings.menu.enableSubMenuCollapseButton" class="flex-center cursor-pointer rounded bg-stone-1 p-2 transition dark-bg-stone-9 hover-bg-stone-2 dark-hover-bg-stone-8" :class="{ '-rotate-z-180': settingsStore.settings.menu.subMenuCollapse }" @click="settingsStore.toggleSidebarCollapse()">
+        <SvgIcon name="toolbar-collapse" />
+      </span>
     </div>
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style scoped>
 .sub-sidebar-container {
-  display: flex;
-  flex-direction: column;
   position: absolute;
-  left: 0;
   top: 0;
   bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
   width: var(--g-sub-sidebar-width);
   background-color: var(--g-sub-sidebar-bg);
   transition: background-color 0.3s, left 0.3s, width 0.3s;
@@ -88,16 +120,16 @@ function onSidebarScroll(e: Event) {
     overflow: hidden auto;
     overscroll-behavior: contain;
 
-    // firefox隐藏滚动条
-    scrollbar-width: none;
-
-    // chrome隐藏滚动条
-    &::-webkit-scrollbar {
-      display: none;
+    &.shadow-top {
+      box-shadow: inset 0 10px 10px -10px var(--g-box-shadow-color), inset 0 0 0 transparent;
     }
 
-    &.shadow {
-      box-shadow: inset 0 10px 10px -10px var(--g-box-shadow-color);
+    &.shadow-bottom {
+      box-shadow: inset 0 0 0 transparent, inset 0 -10px 10px -10px var(--g-box-shadow-color);
+    }
+
+    &.shadow-top.shadow-bottom {
+      box-shadow: inset 0 10px 10px -10px var(--g-box-shadow-color), inset 0 -10px 10px -10px var(--g-box-shadow-color);
     }
   }
 
@@ -106,7 +138,7 @@ function onSidebarScroll(e: Event) {
   }
 }
 
-// 次侧边栏动画
+/* 次侧边栏动画 */
 .sub-sidebar-enter-active {
   transition: opacity 0.3s, transform 0.3s;
 }

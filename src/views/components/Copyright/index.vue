@@ -12,7 +12,7 @@ const settingsStore = useSettingsStore()
 <template>
   <footer v-if="route.meta.copyright ?? settingsStore.settings.copyright.enable" class="copyright">
     <span>Copyright</span>
-    <SvgIcon name="ri:copyright-line" :size="18" />
+    <SvgIcon name="i-ri:copyright-line" :size="18" />
     <span v-if="settingsStore.settings.copyright.dates">{{ settingsStore.settings.copyright.dates }}</span>
     <template v-if="settingsStore.settings.copyright.company">
       <a v-if="settingsStore.settings.copyright.website" :href="settingsStore.settings.copyright.website" target="_blank" rel="noopener">{{ settingsStore.settings.copyright.company }}</a>
@@ -22,17 +22,17 @@ const settingsStore = useSettingsStore()
   </footer>
 </template>
 
-<style lang="scss" scoped>
+<style scoped>
 .copyright {
-  --at-apply: flex items-center justify-center flex-wrap py-3 px-4 text-sm text-stone-5;
+  --uno: flex items-center justify-center flex-wrap py-3 px-4 text-sm text-stone-5;
 
   span,
   a {
-    --at-apply: px-1;
+    --uno: px-1;
   }
 
   a {
-    --at-apply: text-center no-underline text-stone-5 hover:text-dark dark:hover:text-light transition;
+    --uno: text-center no-underline text-stone-5 hover-text-dark dark-hover-text-light transition;
   }
 }
 </style>

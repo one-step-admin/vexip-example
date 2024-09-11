@@ -2,11 +2,13 @@
 const globalSettingsDefault: RecursiveRequired<Settings.all> = {
   app: {
     colorScheme: 'light',
+    enableMournMode: false,
+    enableColorAmblyopiaMode: false,
     enablePermission: false,
   },
   menu: {
     baseOn: 'frontend',
-    menuMode: 'side',
+    mode: 'side',
     switchMainMenuAndOpenWindow: false,
     subMenuUniqueOpened: true,
     subMenuCollapse: false,
@@ -14,14 +16,16 @@ const globalSettingsDefault: RecursiveRequired<Settings.all> = {
     enableHotkeys: false,
   },
   toolbar: {
-    enableFullscreen: false,
-    enableColorScheme: false,
+    previewWindows: true,
+    navSearch: true,
+    fullscreen: false,
+    colorScheme: false,
   },
   navSearch: {
-    enable: true,
     enableHotkeys: true,
   },
   window: {
+    defaultWidth: 1000,
     enableHotkeys: true,
   },
   copyright: {

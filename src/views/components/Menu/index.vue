@@ -93,7 +93,7 @@ const handleMenuItemClick: MenuInjection['handleMenuItemClick'] = (index, window
   }
   setSubMenusActive(index)
   if (windowName) {
-    if (/^(https?:|mailto:|tel:)/.test(windowName)) {
+    if (/^(?:https?:|mailto:|tel:)/.test(windowName)) {
       window.open(windowName)
     }
     else {
@@ -169,11 +169,9 @@ provide(rootMenuInjectionKey, reactive({
 
 <template>
   <div
-    class="flex flex-col of-hidden transition-all" :class="{
-      'w-[200px]': !isMenuPopup && props.mode === 'vertical',
-      'w-[64px]': isMenuPopup && props.mode === 'vertical',
-      'h-[80px]': props.mode === 'horizontal',
-      'flex-row! w-auto': isMenuPopup && props.mode === 'horizontal',
+    class="h-full w-full flex flex-col of-hidden transition-all" :class="{
+      'flex-row! w-auto!': isMenuPopup && props.mode === 'horizontal',
+      'py-1': props.mode === 'vertical',
     }"
   >
     <template v-for="(item, index) in menu" :key="index">

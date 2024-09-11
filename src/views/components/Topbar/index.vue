@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import Tools from '../Tools/index.vue'
+import LeftSide from './leftSide.vue'
+import RightSide from './rightSide.vue'
 import useSettingsStore from '@/store/modules/settings'
 
 defineOptions({
@@ -10,35 +11,21 @@ const settingsStore = useSettingsStore()
 </script>
 
 <template>
-  <div class="topbar-container" data-fixed-calc-width>
-    <div class="left-box">
-      <div v-if="(['side', 'head', 'single'].includes(settingsStore.settings.menu.menuMode) && settingsStore.settings.menu.enableSubMenuCollapseButton)" class="flex-center cursor-pointer px-2 py-1 transition-transform" :class="{ '-rotate-z-180': settingsStore.settings.menu.subMenuCollapse }" @click="settingsStore.toggleSidebarCollapse()">
-        <SvgIcon name="toolbar-collapse" class="icon" />
-      </div>
+  <div class="topbar-container fixed top-0 z-999 flex items-center justify-between" data-fixed-calc-width>
+    <div class="h-full flex items-center of-hidden pl-2 pr-16" style="mask-image: linear-gradient(90deg, #000 0%, #000 calc(100% - 50px), transparent);">
+      <LeftSide />
     </div>
-    <Tools />
+    <div v-show="['side', 'single'].includes(settingsStore.settings.menu.mode)" class="h-full flex items-center justify-end px-2">
+      <RightSide />
+    </div>
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style scoped>
 .topbar-container {
-  position: fixed;
-  z-index: 999;
-  top: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   height: var(--g-topbar-height);
   background-color: var(--g-toolbar-bg);
-  transition: width 0.3s, top 0.3s, transform 0.3s, background-color 0.3s;
   box-shadow: 0 1px 0 0 var(--g-border-color);
-
-  .left-box {
-    display: flex;
-    align-items: center;
-    padding-left: 10px;
-    padding-right: 50px;
-    overflow: hidden;
-  }
+  transition: width 0.3s, top 0.3s, transform 0.3s, background-color 0.3s;
 }
 </style>

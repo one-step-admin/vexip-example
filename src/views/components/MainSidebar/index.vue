@@ -15,41 +15,43 @@ const { switchTo } = useMenu()
 
 <template>
   <Transition name="main-sidebar">
-    <div v-if="['side'].includes(settingsStore.settings.menu.menuMode)" class="main-sidebar-container">
+    <div v-if="['side'].includes(settingsStore.settings.menu.mode)" class="main-sidebar-container">
       <Logo :show-title="false" class="sidebar-logo" />
-      <!-- 侧边栏模式（含主导航） -->
-      <div class="menu flex flex-col of-hidden transition-all">
-        <template v-for="(item, index) in menuStore.allMenus" :key="index">
-          <div
-            class="menu-item relative transition-all" :class="{
-              active: index === menuStore.actived,
-            }"
-          >
+      <div class="menu scrollbar-none">
+        <!-- 侧边栏模式（含主导航） -->
+        <div class="w-full flex flex-col of-hidden py-1 transition-all -mt-2">
+          <template v-for="(item, index) in menuStore.allMenus" :key="index">
             <div
-              v-if="item.children && item.children.length !== 0" class="group menu-item-container h-full w-full flex cursor-pointer items-center justify-between gap-1 py-4 text-[var(--g-main-sidebar-menu-color)] transition-all hover:(bg-[var(--g-main-sidebar-menu-hover-bg)] text-[var(--g-main-sidebar-menu-hover-color)]) px-2!" :class="{
-                'text-[var(--g-main-sidebar-menu-active-color)]! bg-[var(--g-main-sidebar-menu-active-bg)]!': index === menuStore.actived,
-              }" :title="typeof item?.title === 'function' ? item?.title() : item?.title" @click="switchTo(index)"
+              class="menu-item relative px-2 py-1 transition-all" :class="{
+                active: index === menuStore.actived,
+              }"
             >
-              <div class="w-full inline-flex flex-1 flex-col items-center justify-center gap-1">
-                <SvgIcon v-if="item?.icon" :name="item?.icon" :size="20" class="menu-item-container-icon transition-transform group-hover:scale-120" async />
-                <span class="w-full flex-1 truncate text-center text-sm transition-height transition-opacity transition-width">
-                  {{ typeof item?.title === 'function' ? item?.title() : item?.title }}
-                </span>
+              <div
+                v-if="item.children && item.children.length !== 0" class="group menu-item-container h-full w-full flex cursor-pointer items-center justify-between gap-1 py-4 text-[var(--g-main-sidebar-menu-color)] transition-all hover-(bg-[var(--g-main-sidebar-menu-hover-bg)] text-[var(--g-main-sidebar-menu-hover-color)]) px-2!" :class="{
+                  'text-[var(--g-main-sidebar-menu-active-color)]! bg-[var(--g-main-sidebar-menu-active-bg)]!': index === menuStore.actived,
+                }" :title="typeof item?.title === 'function' ? item?.title() : item?.title" @click="switchTo(index)"
+              >
+                <div class="w-full inline-flex flex-1 flex-col items-center justify-center gap-1">
+                  <SvgIcon v-if="item?.icon" :name="item?.icon" class="menu-item-container-icon transition-transform group-hover-scale-120" />
+                  <span class="w-full flex-1 truncate text-center text-sm transition-height transition-opacity transition-width">
+                    {{ typeof item?.title === 'function' ? item?.title() : item?.title }}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-        </template>
+          </template>
+        </div>
       </div>
     </div>
   </Transition>
 </template>
 
-<style lang="scss" scoped>
+<style scoped>
 .main-sidebar-container {
-  display: flex;
-  flex-direction: column;
   position: relative;
   z-index: 1;
+  display: flex;
+  flex-direction: column;
   width: var(--g-main-sidebar-width);
   color: var(--g-main-sidebar-menu-color);
   background-color: var(--g-main-sidebar-bg);
@@ -67,14 +69,6 @@ const { switchTo } = useMenu()
     overflow: hidden auto;
     overscroll-behavior: contain;
 
-    // firefox隐藏滚动条
-    scrollbar-width: none;
-
-    // chrome隐藏滚动条
-    &::-webkit-scrollbar {
-      display: none;
-    }
-
     :deep(.menu-item) {
       .menu-item-container {
         padding-block: 8px;
@@ -86,7 +80,7 @@ const { switchTo } = useMenu()
         }
 
         .menu-item-container-icon {
-          font-size: 24px !important;
+          font-size: 20px !important;
         }
       }
 
@@ -103,7 +97,7 @@ const { switchTo } = useMenu()
   }
 }
 
-// 主侧边栏动画
+/* 主侧边栏动画 */
 .main-sidebar-enter-active,
 .main-sidebar-leave-active {
   transition: 0.3s;

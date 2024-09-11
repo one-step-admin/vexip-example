@@ -15,16 +15,7 @@ const menuStore = useMenuStore()
 
 const isShow = ref(false)
 
-const isDark = computed({
-  get() {
-    return settingsStore.settings.app.colorScheme === 'dark'
-  },
-  set(value) {
-    settingsStore.settings.app.colorScheme = value ? 'dark' : 'light'
-  },
-})
-
-watch(() => settingsStore.settings.menu.menuMode, (value) => {
+watch(() => settingsStore.settings.menu.mode, (value) => {
   if (value === 'single') {
     menuStore.setActived(0)
   }
@@ -45,20 +36,20 @@ watch(copied, (val) => {
   }
 })
 
-interface AnyObject {
-  [key: string]: any
+function isObject(value: any) {
+  return typeof value === 'object' && !Array.isArray(value)
 }
 // 比较两个对象，并提取出不同的部分
-function getObjectDiff(originalObj: AnyObject, diffObj: AnyObject): AnyObject {
-  if (typeof originalObj !== 'object' || typeof diffObj !== 'object') {
+function getObjectDiff(originalObj: Record<string, any>, diffObj: Record<string, any>) {
+  if (!isObject(originalObj) || !isObject(diffObj)) {
     return diffObj
   }
-  const diff: AnyObject = {}
+  const diff: Record<string, any> = {}
   for (const key in diffObj) {
     const originalValue = originalObj[key]
     const diffValue = diffObj[key]
-    if (originalValue !== diffValue) {
-      if (typeof originalValue === 'object' && typeof diffValue === 'object') {
+    if (JSON.stringify(originalValue) !== JSON.stringify(diffValue)) {
+      if (isObject(originalValue) && isObject(diffValue)) {
         const nestedDiff = getObjectDiff(originalValue, diffValue)
         if (Object.keys(nestedDiff).length > 0) {
           diff[key] = nestedDiff
@@ -91,24 +82,32 @@ function handleCopy() {
       颜色主题风格
     </div>
     <div class="flex items-center justify-center pb-4">
-      <HToggle v-model="isDark" on-icon="ri:sun-line" off-icon="ri:moon-line" />
+      <HTabList
+        v-model="settingsStore.settings.app.colorScheme"
+        :options="[
+          { icon: 'i-ri:sun-line', label: '明亮', value: 'light' },
+          { icon: 'i-ri:moon-line', label: '暗黑', value: 'dark' },
+          { icon: 'i-codicon:color-mode', label: '系统', value: '' },
+        ]"
+        class="w-60"
+      />
     </div>
     <div class="divider">
       导航栏模式
     </div>
     <div class="menu-mode">
       <HTooltip text="侧边栏模式 (含主导航)" placement="bottom" :delay="500">
-        <div class="mode mode-side" :class="{ active: settingsStore.settings.menu.menuMode === 'side' }" @click="settingsStore.settings.menu.menuMode = 'side'">
+        <div class="mode mode-side" :class="{ active: settingsStore.settings.menu.mode === 'side' }" @click="settingsStore.settings.menu.mode = 'side'">
           <div class="mode-container" />
         </div>
       </HTooltip>
       <HTooltip text="顶部模式" placement="bottom" :delay="500">
-        <div class="mode mode-head" :class="{ active: settingsStore.settings.menu.menuMode === 'head' }" @click="settingsStore.settings.menu.menuMode = 'head'">
+        <div class="mode mode-head" :class="{ active: settingsStore.settings.menu.mode === 'head' }" @click="settingsStore.settings.menu.mode = 'head'">
           <div class="mode-container" />
         </div>
       </HTooltip>
       <HTooltip text="侧边栏模式 (不含主导航)" placement="bottom" :delay="500">
-        <div class="mode mode-single" :class="{ active: settingsStore.settings.menu.menuMode === 'single' }" @click="settingsStore.settings.menu.menuMode = 'single'">
+        <div class="mode mode-single" :class="{ active: settingsStore.settings.menu.mode === 'single' }" @click="settingsStore.settings.menu.mode = 'single'">
           <div class="mode-container" />
         </div>
       </HTooltip>
@@ -120,16 +119,16 @@ function handleCopy() {
       <div class="label">
         主导航切换打开窗口
         <HTooltip text="开启该功能后，切换主导航时，将自动打开该侧边栏导航下第一个导航窗口">
-          <SvgIcon name="ri:question-line" />
+          <SvgIcon name="i-ri:question-line" />
         </HTooltip>
       </div>
-      <HToggle v-model="settingsStore.settings.menu.switchMainMenuAndOpenWindow" :disabled="['single'].includes(settingsStore.settings.menu.menuMode)" />
+      <HToggle v-model="settingsStore.settings.menu.switchMainMenuAndOpenWindow" :disabled="['single'].includes(settingsStore.settings.menu.mode)" />
     </div>
     <div class="setting-item">
       <div class="label">
         次导航保持展开一个
         <HTooltip text="开启该功能后，次导航只保持单个菜单的展开">
-          <SvgIcon name="ri:question-line" />
+          <SvgIcon name="i-ri:question-line" />
         </HTooltip>
       </div>
       <HToggle v-model="settingsStore.settings.menu.subMenuUniqueOpened" />
@@ -150,25 +149,40 @@ function handleCopy() {
       <div class="label">
         是否启用快捷键
       </div>
-      <HToggle v-model="settingsStore.settings.menu.enableHotkeys" :disabled="['single'].includes(settingsStore.settings.menu.menuMode)" />
+      <HToggle v-model="settingsStore.settings.menu.enableHotkeys" :disabled="['single'].includes(settingsStore.settings.menu.mode)" />
     </div>
     <div class="divider">
       工具栏
     </div>
     <div class="setting-item">
       <div class="label">
+        窗口预览
+      </div>
+      <HToggle v-model="settingsStore.settings.toolbar.previewWindows" />
+    </div>
+    <div class="setting-item">
+      <div class="label">
+        导航搜索
+        <HTooltip text="对导航进行快捷搜索">
+          <SvgIcon name="i-ri:question-line" />
+        </HTooltip>
+      </div>
+      <HToggle v-model="settingsStore.settings.toolbar.navSearch" />
+    </div>
+    <div class="setting-item">
+      <div class="label">
         全屏
       </div>
-      <HToggle v-model="settingsStore.settings.toolbar.enableFullscreen" />
+      <HToggle v-model="settingsStore.settings.toolbar.fullscreen" />
     </div>
     <div class="setting-item">
       <div class="label">
         颜色主题
         <HTooltip text="开启后可在明亮/暗黑模式中切换">
-          <SvgIcon name="ri:question-line" />
+          <SvgIcon name="i-ri:question-line" />
         </HTooltip>
       </div>
-      <HToggle v-model="settingsStore.settings.toolbar.enableColorScheme" />
+      <HToggle v-model="settingsStore.settings.toolbar.colorScheme" />
     </div>
     <div class="divider">
       窗口
@@ -184,18 +198,9 @@ function handleCopy() {
     </div>
     <div class="setting-item">
       <div class="label">
-        是否启用
-        <HTooltip text="对导航进行快捷搜索">
-          <SvgIcon name="ri:question-line" />
-        </HTooltip>
-      </div>
-      <HToggle v-model="settingsStore.settings.navSearch.enable" />
-    </div>
-    <div class="setting-item">
-      <div class="label">
         是否启用快捷键
       </div>
-      <HToggle v-model="settingsStore.settings.navSearch.enableHotkeys" :disabled="!settingsStore.settings.navSearch.enable" />
+      <HToggle v-model="settingsStore.settings.navSearch.enableHotkeys" :disabled="!settingsStore.settings.toolbar.navSearch" />
     </div>
     <div class="divider">
       底部版权
@@ -239,105 +244,120 @@ function handleCopy() {
       </div>
       <HToggle v-model="settingsStore.settings.app.enablePermission" />
     </div>
+    <div class="setting-item">
+      <div class="label">
+        哀悼模式
+        <HTooltip text="该功能开启时，整站会变为灰色">
+          <SvgIcon name="i-ri:question-line" />
+        </HTooltip>
+      </div>
+      <HToggle v-model="settingsStore.settings.app.enableMournMode" />
+    </div>
+    <div class="setting-item">
+      <div class="label">
+        色弱模式
+      </div>
+      <HToggle v-model="settingsStore.settings.app.enableColorAmblyopiaMode" />
+    </div>
     <template v-if="isSupported" #footer>
       <HButton block @click="handleCopy">
-        <SvgIcon name="ep:document-copy" />
+        <SvgIcon name="i-ep:document-copy" />
         复制配置
       </HButton>
     </template>
   </HSlideover>
 </template>
 
-<style lang="scss" scoped>
+<style scoped>
 .divider {
-  --at-apply: flex items-center justify-between gap-4 my-4 whitespace-nowrap text-sm font-500;
+  --uno: flex items-center justify-between gap-4 my-4 whitespace-nowrap text-sm font-500;
 
   &::before,
   &::after {
-    --at-apply: content-empty w-full h-1px bg-stone-2 dark:bg-stone-6;
+    --uno: content-empty w-full h-1px bg-stone-2 dark-bg-stone-6;
   }
 }
 
 .menu-mode {
-  --at-apply: flex items-center justify-center gap-4 pb-4;
+  --uno: flex items-center justify-center gap-4 pb-4;
 
   .mode {
-    --at-apply: relative w-16 h-12 rounded-2 ring-1 ring-stone-2 dark:ring-stone-7 cursor-pointer transition;
+    --uno: relative w-16 h-12 rounded-2 ring-1 ring-stone-2 dark-ring-stone-7 cursor-pointer transition;
 
     &.active {
-      --at-apply: ring-ui-primary ring-2;
+      --uno: ring-ui-primary ring-2;
     }
 
     &::before,
     &::after,
     .mode-container {
-      --at-apply: absolute pointer-events-none;
+      --uno: absolute pointer-events-none;
     }
 
     &::before {
-      --at-apply: content-empty bg-ui-primary;
+      --uno: content-empty bg-ui-primary;
     }
 
     &::after {
-      --at-apply: content-empty bg-ui-primary/60;
+      --uno: content-empty bg-ui-primary/60;
     }
 
     .mode-container {
-      --at-apply: bg-ui-primary/20 border-width-1.5 border-dashed border-ui-primary;
+      --uno: bg-ui-primary/20 border-width-1.5 border-dashed border-ui-primary;
 
       &::before {
-        --at-apply: content-empty absolute w-full h-full;
+        --uno: content-empty absolute w-full h-full;
       }
     }
 
     &-side {
       &::before {
-        --at-apply: top-2 bottom-2 left-2 w-2 rounded-tl-1 rounded-bl-1;
+        --uno: top-2 bottom-2 left-2 w-2 rounded-tl-1 rounded-bl-1;
       }
 
       &::after {
-        --at-apply: top-2 bottom-2 left-4.5 w-3;
+        --uno: top-2 bottom-2 left-4.5 w-3;
       }
 
       .mode-container {
-        --at-apply: inset-t-2 inset-r-2 inset-b-2 inset-l-8 rounded-tr-1 rounded-br-1;
+        --uno: inset-t-2 inset-r-2 inset-b-2 inset-l-8 rounded-tr-1 rounded-br-1;
       }
     }
 
     &-head {
       &::before {
-        --at-apply: top-2 left-2 right-2 h-2 rounded-tl-1 rounded-tr-1;
+        --uno: top-2 left-2 right-2 h-2 rounded-tl-1 rounded-tr-1;
       }
 
       &::after {
-        --at-apply: top-4.5 left-2 bottom-2 w-3 rounded-bl-1;
+        --uno: top-4.5 left-2 bottom-2 w-3 rounded-bl-1;
       }
 
       .mode-container {
-        --at-apply: inset-t-4.5 inset-r-2 inset-b-2 inset-l-5.5 rounded-br-1;
+        --uno: inset-t-4.5 inset-r-2 inset-b-2 inset-l-5.5 rounded-br-1;
       }
     }
 
     &-single {
       &::after {
-        --at-apply: top-2 left-2 bottom-2 w-3 rounded-tl-1 rounded-bl-1;
+        --uno: top-2 left-2 bottom-2 w-3 rounded-tl-1 rounded-bl-1;
       }
 
       .mode-container {
-        --at-apply: inset-t-2 inset-r-2 inset-b-2 inset-l-5.5 rounded-tr-1 rounded-br-1;
+        --uno: inset-t-2 inset-r-2 inset-b-2 inset-l-5.5 rounded-tr-1 rounded-br-1;
       }
     }
   }
 }
 
 .setting-item {
-  --at-apply: flex items-center justify-between gap-4 px-4 py-2 rounded-2 transition hover:bg-stone-1 dark:hover:bg-stone-9;
+  --uno: flex items-center justify-between gap-4 px-4 py-2 rounded-2 transition hover-bg-stone-1 dark-hover-bg-stone-9;
 
   .label {
-    --at-apply: flex items-center flex-shrink-0 gap-2 text-sm;
+    --uno: flex items-center flex-shrink-0 gap-2 text-sm;
 
     i {
-      --at-apply: text-xl text-orange cursor-help;
+      --uno: text-xl text-orange cursor-help;
     }
   }
 }

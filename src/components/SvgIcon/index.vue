@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { UseImage } from '@vueuse/components'
 import { Icon } from '@iconify/vue'
-import { isOfflineUse } from '@/iconify/index.json'
 
 defineOptions({
   name: 'SvgIcon',
@@ -8,7 +8,6 @@ defineOptions({
 
 const props = defineProps<{
   name: string
-  async?: boolean
   flip?: 'horizontal' | 'vertical' | 'both'
   rotate?: number
   color?: string
@@ -16,27 +15,20 @@ const props = defineProps<{
 }>()
 
 const outputType = computed(() => {
-  if (props.name.indexOf('i-') === 0) {
-    return (props.async || isOfflineUse) ? 'svg' : 'css'
+  const hasPathFeatures = (str: string) => {
+    return /^\.{1,2}\//.test(str) || str.startsWith('/') || str.includes('/')
+  }
+  if (/^https?:\/\//.test(props.name) || hasPathFeatures(props.name) || !props.name) {
+    return 'img'
+  }
+  else if (/i-[^:]+:[^:]+/.test(props.name)) {
+    return 'unocss'
   }
   else if (props.name.includes(':')) {
+    return 'iconify'
+  }
+  else {
     return 'svg'
-  }
-  else {
-    return 'custom'
-  }
-})
-
-const outputName = computed(() => {
-  if (props.name.indexOf('i-') === 0) {
-    let conversionName = props.name
-    if (props.async || isOfflineUse) {
-      conversionName = conversionName.replace('i-', '')
-    }
-    return conversionName
-  }
-  else {
-    return props.name
   }
 })
 
@@ -69,10 +61,18 @@ const style = computed(() => {
 
 <template>
   <i class="relative h-[1em] w-[1em] flex-inline items-center justify-center fill-current leading-[1em]" :style="style">
-    <i v-if="outputType === 'css'" :class="outputName" />
-    <Icon v-else-if="outputType === 'svg'" :icon="outputName" />
-    <svg v-else h-1em w-1em aria-hidden="true">
-      <use :xlink:href="`#icon-${outputName}`" />
+    <i v-if="outputType === 'unocss'" class="h-[1em] w-[1em]" :class="name" />
+    <Icon v-else-if="outputType === 'iconify'" :icon="name" />
+    <svg v-else-if="outputType === 'svg'" class="h-[1em] w-[1em]" aria-hidden="true">
+      <use :xlink:href="`#icon-${name}`" />
     </svg>
+    <UseImage v-else-if="outputType === 'img'" :src="name" class="h-[1em] w-[1em]">
+      <template #loading>
+        <i class="i-line-md:loading-loop h-[1em] w-[1em]" />
+      </template>
+      <template #error>
+        <i class="i-tdesign:image-error h-[1em] w-[1em]" />
+      </template>
+    </UseImage>
   </i>
 </template>

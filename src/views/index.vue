@@ -16,6 +16,28 @@ import eventBus from '@/utils/eventBus'
 const settingsStore = useSettingsStore()
 const menuStore = useMenuStore()
 
+// 侧边栏主导航当前实际宽度
+const mainSidebarActualWidth = computed(() => {
+  let actualWidth = Number.parseInt(getComputedStyle(document.documentElement).getPropertyValue('--g-main-sidebar-width'))
+  if (['head', 'single'].includes(settingsStore.settings.menu.mode)) {
+    actualWidth = 0
+  }
+  return `${actualWidth}px`
+})
+
+// 侧边栏次导航当前实际宽度
+const subSidebarActualWidth = computed(() => {
+  let actualWidth = Number.parseInt(getComputedStyle(document.documentElement).getPropertyValue('--g-sub-sidebar-width'))
+  if (settingsStore.settings.menu.subMenuCollapse) {
+    actualWidth = 64
+  }
+  return `${actualWidth}px`
+})
+
+const enableToolbar = computed(() => {
+  return !(settingsStore.settings.menu.mode === 'head' && !settingsStore.settings.toolbar.previewWindows)
+})
+
 onMounted(() => {
   hotkeys('alt+`', (e) => {
     if (settingsStore.settings.menu.enableHotkeys) {
@@ -32,7 +54,12 @@ const enableAppSetting = import.meta.env.VITE_APP_SETTING === 'true'
 </script>
 
 <template>
-  <div class="layout">
+  <div
+    class="layout" :style="{
+      '--g-main-sidebar-actual-width': mainSidebarActualWidth,
+      '--g-sub-sidebar-actual-width': subSidebarActualWidth,
+    }"
+  >
     <div id="app-main">
       <Header />
       <div class="wrapper">
@@ -41,27 +68,26 @@ const enableAppSetting = import.meta.env.VITE_APP_SETTING === 'true'
           <SubSidebar />
         </div>
         <div class="main-container">
-          <Topbar v-if="!(settingsStore.settings.menu.menuMode === 'head' && !settingsStore.settings.menu.enableSubMenuCollapseButton)" />
+          <Topbar v-if="enableToolbar" />
           <div class="main">
             <Dashboard />
           </div>
           <Copyright v-if="settingsStore.settings.copyright.enable" />
         </div>
       </div>
-      <ElBacktop :right="20" :bottom="20" title="回到顶部" />
     </div>
     <Search />
     <HotkeysIntro />
-    <div v-if="enableAppSetting">
+    <template v-if="enableAppSetting">
       <div class="app-setting" @click="eventBus.emit('global-app-setting-toggle')">
-        <SvgIcon name="uiw:setting-o" class="icon" />
+        <SvgIcon name="i-uiw:setting-o" class="icon" />
       </div>
       <AppSetting />
-    </div>
+    </template>
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style scoped>
 .layout {
   height: 100%;
 }
@@ -81,9 +107,9 @@ const enableAppSetting = import.meta.env.VITE_APP_SETTING === 'true'
 
   .sidebar-container {
     position: fixed;
-    z-index: 1010;
     top: 0;
     bottom: 0;
+    z-index: 1010;
     display: flex;
     width: calc(var(--g-main-sidebar-actual-width) + var(--g-sub-sidebar-actual-width));
     box-shadow: -1px 0 0 0 var(--g-border-color), 1px 0 0 0 var(--g-border-color);
@@ -108,9 +134,9 @@ const enableAppSetting = import.meta.env.VITE_APP_SETTING === 'true'
     }
 
     .main {
-      height: 100%;
-      flex: auto;
       position: relative;
+      flex: auto;
+      height: 100%;
       overflow: hidden;
       transition: 0.3s;
     }
@@ -121,9 +147,10 @@ const enableAppSetting = import.meta.env.VITE_APP_SETTING === 'true'
   }
 
   .copyright {
+    position: relative;
     background-color: var(--g-app-bg);
-    box-shadow: 0 0 1px 0 var(--g-box-shadow-color);
-    transition: background-color 0.3s, var(--el-transition-box-shadow);
+    box-shadow: 0 -1px 0 0 var(--g-border-color);
+    transition: background-color 0.3s, box-shadow 0.3s;
   }
 }
 
@@ -145,30 +172,26 @@ header:not(.header-leave-active) + .wrapper {
   .main-container {
     .topbar-container {
       top: var(--g-header-height);
-
-      :deep(.tools) {
-        display: none;
-      }
     }
   }
 }
 
 .app-setting {
-  --at-apply: text-white dark:text-dark bg-ui-primary;
+  --uno: text-white dark-text-dark bg-ui-primary;
 
   position: fixed;
-  z-index: 10;
-  right: 0;
   top: calc(50% + 250px);
+  right: 0;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 50px;
   height: 50px;
-  border-top-left-radius: 5px;
-  border-bottom-left-radius: 5px;
   font-size: 24px;
   cursor: pointer;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
 
   .icon {
     animation: rotate 5s linear infinite;
@@ -185,7 +208,7 @@ header:not(.header-leave-active) + .wrapper {
   }
 }
 
-// 主内容区动画
+/* 主内容区动画 */
 .main-enter-active {
   transition: 0.2s;
 }
@@ -195,12 +218,12 @@ header:not(.header-leave-active) + .wrapper {
 }
 
 .main-enter-from {
-  opacity: 0;
   margin-left: -20px;
+  opacity: 0;
 }
 
 .main-leave-to {
-  opacity: 0;
   margin-left: 20px;
+  opacity: 0;
 }
 </style>

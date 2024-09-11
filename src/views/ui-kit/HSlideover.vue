@@ -4,7 +4,6 @@ import { OverlayScrollbarsComponent } from 'overlayscrollbars-vue'
 
 const props = withDefaults(
   defineProps<{
-    modelValue: boolean
     appear?: boolean
     side?: 'left' | 'right'
     title?: string
@@ -12,7 +11,6 @@ const props = withDefaults(
     overlay?: boolean
   }>(),
   {
-    modelValue: false,
     appear: false,
     side: 'right',
     preventClose: false,
@@ -21,9 +19,12 @@ const props = withDefaults(
 )
 
 const emits = defineEmits<{
-  'update:modelValue': [boolean]
-  'close': []
+  close: []
 }>()
+
+const isOpen = defineModel<boolean>({
+  default: false,
+})
 
 const slots = useSlots()
 
@@ -47,15 +48,6 @@ const transitionClass = computed(() => {
   }
 })
 
-const isOpen = computed({
-  get() {
-    return props.modelValue
-  },
-  set(value) {
-    emits('update:modelValue', value)
-  },
-})
-
 function close() {
   isOpen.value = false
   emits('close')
@@ -66,15 +58,15 @@ function close() {
   <TransitionRoot as="template" :appear="appear" :show="isOpen">
     <Dialog class="fixed inset-0 z-2000 flex" :class="{ 'justify-end': side === 'right' }" @close="!preventClose && close()">
       <TransitionChild as="template" :appear="appear" v-bind="overlayTransitionClass">
-        <div class="fixed inset-0 bg-stone-2/75 transition-opacity dark:bg-stone-8/75" :class="{ 'backdrop-blur-sm': overlay }" />
+        <div class="fixed inset-0 bg-stone-2/75 transition-opacity dark-bg-stone-8/75" :class="{ 'backdrop-blur-sm': overlay }" />
       </TransitionChild>
       <TransitionChild as="template" :appear="appear" v-bind="transitionClass">
-        <DialogPanel relative max-w-md w-full w-screen flex flex-1 flex-col bg-white dark:bg-stone-8 focus:outline-none>
+        <DialogPanel relative max-w-md w-full w-screen flex flex-1 flex-col bg-white dark-bg-stone-8 focus-outline-none>
           <div flex="~ items-center justify-between" p-4 border-b="~ solid stone/15" text-6>
-            <DialogTitle m-0 text-lg text-dark dark:text-white>
+            <DialogTitle m-0 text-lg text-dark dark-text-white>
               {{ title }}
             </DialogTitle>
-            <SvgIcon name="carbon:close" cursor-pointer @click="close" />
+            <SvgIcon name="i-carbon:close" cursor-pointer @click="close" />
           </div>
           <DialogDescription m-0 flex-1 of-y-hidden>
             <OverlayScrollbarsComponent :options="{ scrollbars: { autoHide: 'leave', autoHideDelay: 300 } }" defer class="h-full p-4">

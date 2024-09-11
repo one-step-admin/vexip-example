@@ -6,10 +6,28 @@ export const useSettingsStore = defineStore(
   'settings',
   () => {
     const settings = ref(settingsDefault)
-    watch(() => settings.value.app.colorScheme, (colorScheme) => {
-      if (colorScheme === '') {
-        colorScheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+
+    const prefersColorScheme = window.matchMedia('(prefers-color-scheme: dark)')
+    const currentColorScheme = ref<Exclude<Settings.app['colorScheme'], ''>>()
+    watch(() => settings.value.app.colorScheme, (val) => {
+      if (val === '') {
+        prefersColorScheme.addEventListener('change', updateTheme)
       }
+      else {
+        prefersColorScheme.removeEventListener('change', updateTheme)
+      }
+    }, {
+      immediate: true,
+    })
+    watch(() => settings.value.app.colorScheme, updateTheme, {
+      immediate: true,
+    })
+    function updateTheme() {
+      let colorScheme = settings.value.app.colorScheme
+      if (colorScheme === '') {
+        colorScheme = prefersColorScheme.matches ? 'dark' : 'light'
+      }
+      currentColorScheme.value = colorScheme
       switch (colorScheme) {
         case 'dark':
           document.documentElement.classList.add('dark')
@@ -18,10 +36,26 @@ export const useSettingsStore = defineStore(
           document.documentElement.classList.remove('dark')
           break
       }
+    }
+    watch([
+      () => settings.value.app.enableMournMode,
+      () => settings.value.app.enableColorAmblyopiaMode,
+    ], (val) => {
+      document.documentElement.style.removeProperty('filter')
+      if (val[0] && val[1]) {
+        document.documentElement.style.setProperty('filter', 'grayscale(100%) invert(80%)')
+      }
+      else if (val[0]) {
+        document.documentElement.style.setProperty('filter', 'grayscale(100%)')
+      }
+      else if (val[1]) {
+        document.documentElement.style.setProperty('filter', 'invert(80%)')
+      }
     }, {
       immediate: true,
     })
-    watch(() => settings.value.menu.menuMode, (val) => {
+
+    watch(() => settings.value.menu.mode, (val) => {
       document.body.setAttribute('data-menu-mode', val)
     }, {
       immediate: true,
@@ -60,6 +94,7 @@ export const useSettingsStore = defineStore(
 
     return {
       settings,
+      currentColorScheme,
       os,
       title,
       previewAllWindows,

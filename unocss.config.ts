@@ -10,19 +10,41 @@ import {
   transformerVariantGroup,
 } from 'unocss'
 import { entriesToCss, toArray } from '@unocss/core'
+import { presetScrollbar } from 'unocss-preset-scrollbar'
 import { darkTheme, lightTheme } from './themes'
 
 export default defineConfig<Theme>({
-  shortcuts: [
-    {
-      'flex-center': 'flex justify-center items-center',
-      'flex-col-center': 'flex flex-col justify-center items-center',
+  content: {
+    pipeline: {
+      include: [
+        /\.(vue|svelte|[jt]sx|mdx?|astro|elm|php|phtml|html)($|\?)/,
+        'src/**/*.{js,ts}',
+      ],
     },
+  },
+  shortcuts: [
+    [/^flex-?(col)?-(start|end|center|baseline|stretch)-?(start|end|center|between|around|evenly|left|right)?$/, ([, col, items, justify]) => {
+      const cls = ['flex']
+      if (col === 'col') {
+        cls.push('flex-col')
+      }
+      if (items === 'center' && !justify) {
+        cls.push('items-center')
+        cls.push('justify-center')
+      }
+      else {
+        cls.push(`items-${items}`)
+        if (justify) {
+          cls.push(`justify-${justify}`)
+        }
+      }
+      return cls.join(' ')
+    }],
   ],
   preflights: [
     {
       getCSS: () => {
-        const returnCss: any = []
+        const returnCss: string[] = []
         // 明亮主题
         const lightCss = entriesToCss(Object.entries(lightTheme))
         const lightRoots = toArray([`*,::before,::after`, `::backdrop`])
@@ -52,6 +74,7 @@ export default defineConfig<Theme>({
       },
     }),
     presetTypography(),
+    presetScrollbar(),
   ],
   transformers: [
     transformerDirectives(),

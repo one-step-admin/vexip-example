@@ -15,6 +15,16 @@ declare namespace Settings {
      */
     colorScheme?: '' | 'light' | 'dark'
     /**
+     * 是否开启哀悼模式
+     * @默认值 `false`
+     */
+    enableMournMode?: boolean
+    /**
+     * 是否开启色弱模式
+     * @默认值 `false`
+     */
+    enableColorAmblyopiaMode?: boolean
+    /**
      * 是否开启权限功能
      * @默认值 `false`
      */
@@ -33,7 +43,7 @@ declare namespace Settings {
      * @可选值 `'head'` 顶部模式
      * @可选值 `'single'` 侧边栏模式（无主导航）
      */
-    menuMode?: 'side' | 'head' | 'single'
+    mode?: 'side' | 'head' | 'single'
     /**
      * 切换主导航同时打开窗口
      * @默认值 `false`
@@ -62,22 +72,27 @@ declare namespace Settings {
   }
   interface toolbar {
     /**
-     * 是否开启全屏
-     * @默认值 `false`
+     * 是否开启窗口预览
+     * @默认值 `true`
      */
-    enableFullscreen?: boolean
-    /**
-     * 是否开启颜色主题
-     * @默认值 `false`
-     */
-    enableColorScheme?: boolean
-  }
-  interface navSearch {
+    previewWindows?: boolean
     /**
      * 是否开启导航搜索
      * @默认值 `true`
      */
-    enable?: boolean
+    navSearch?: boolean
+    /**
+     * 是否开启全屏
+     * @默认值 `false`
+     */
+    fullscreen?: boolean
+    /**
+     * 是否开启颜色主题
+     * @默认值 `false`
+     */
+    colorScheme?: boolean
+  }
+  interface navSearch {
     /**
      * 是否开启导航搜索快捷键
      * @默认值 `true`
@@ -85,6 +100,11 @@ declare namespace Settings {
     enableHotkeys?: boolean
   }
   interface window {
+    /**
+     * 窗口默认宽度，设置为数字时单位为 px
+     * @默认值 `1000`
+     */
+    defaultWidth?: string | number
     /**
      * 是否开启窗口快捷键
      * @默认值 `true`
@@ -137,7 +157,7 @@ declare namespace Settings {
 declare namespace Menu {
   /** 原始 */
   interface recordRaw {
-    title?: string | Function
+    title?: string | (() => string)
     icon?: string
     auth?: string | string[]
     params?: object
@@ -147,19 +167,19 @@ declare namespace Menu {
   }
   /** 主导航 */
   interface recordMainRaw {
-    title?: string | Function
+    title?: string | (() => string)
     icon?: string
     auth?: string | string[]
     children: recordRaw[]
   }
   interface breadcrumb {
-    title?: string | Function
+    title?: string | (() => string)
   }
 }
 
 interface window {
   name: string
-  title?: string | Function
+  title?: string | (() => string)
   params?: object
   breadcrumbNeste?: any[]
   reload?: boolean
